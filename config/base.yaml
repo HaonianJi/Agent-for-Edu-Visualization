@@ -1,0 +1,46 @@
+# dataset、retrieval、multi_agents的结构都可以在这个yaml中修改
+# agent和model需要在对应的config文件夹下面修改
+
+defaults:
+  - dataset: ldu # 改这个可以换数据集
+  - retrieval: image # 改这个可以换image/text，使用retrieval时配置
+  - _self_
+
+run-name: ldu-image # 实验名
+
+dataset:
+  top_k: 1 # 推理时用top几
+  question_key: question # 推理时用的query
+
+retrieval:
+  top_k: 10 # 检索时给出top几的结果
+  text_question_key: question # 文字检索时使用的query，使用retrieval和predict时均需要
+  image_question_key: question # 图片检索时使用的query，使用retrieval和predict时均需要
+  cuda_visible_devices: '0'
+
+multi_agents:
+  cuda_visible_devices: '0,1,2,3'
+  truncate_len: null # 用来debug，正常使用时设置为null
+  rounds: 1 # 用来配置多轮讨论的轮数
+  save_freq: 10 # 用来配置保存的频率
+  ans_key: ans_${run-name} # predict时生成的答案的key
+  save_message: false # 改成true会再记录所有agent的回答
+  roundk_prompt: Based on all the information, inputs, and discussions provided so far, carefully analyze and synthesize the relevant details. Think step by step, ensuring logical reasoning and completeness in your thought process. Provide your final answer clearly and concisely. # 用来配置讨论后各agent总结答案的提示
+
+  agents:
+    - agent: image_only # agent用来配置prompt，和控制参考资料中文本/图片的使用
+      model: qwen2vl # model用来配置使用的模型
+    - agent: text_only
+      model: llama31
+    - agent: binary_agent
+      model: qwen2vl
+  
+  sum_agent:
+    agent: sum_agent # 用来汇总所有agent的回答
+    model: qwen2vl
+
+eval_agent: # 用来测试结果
+  truncate_len: null # 用来debug，正常使用时设置为null
+  ans_key: ans_${run-name}
+  agent: base
+  model: openai
