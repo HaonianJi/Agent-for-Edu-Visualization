@@ -9,7 +9,7 @@ from colpali_engine.trainer.retrieval_evaluator import CustomEvaluator
 from colpali_engine.utils.colpali_processing_utils import process_images, process_queries
 from transformers import AutoProcessor
 
-from mydatasets.base_dataset import BaseDataset
+from mydatasets.doc_dataset import DocDataset
 from retrieval.base_retrieval import BaseRetrieval
 
 class ColpaliRetrieval(BaseRetrieval):
@@ -20,7 +20,7 @@ class ColpaliRetrieval(BaseRetrieval):
         self.model.load_adapter(model_name)
         self.processor = AutoProcessor.from_pretrained(model_name)
     
-    def prepare(self, dataset: BaseDataset):
+    def prepare(self, dataset: DocDataset):
         os.makedirs(self.config.embed_dir, exist_ok=True)
         embed_path = self.config.embed_dir + "/" + dataset.config.name + "_embed.pkl"
         if os.path.exists(embed_path):
@@ -87,7 +87,7 @@ class ColpaliRetrieval(BaseRetrieval):
         
         return top_page_indices, top_page_scores
         
-    def find_top_k(self, dataset: BaseDataset, prepare=False):
+    def find_top_k(self, dataset: DocDataset, prepare=False):
         embed_path = self.config.embed_dir + "/" + dataset.config.name + "_embed.pkl"
         if os.path.exists(embed_path) and not prepare:
             with open(embed_path, "rb") as file:  # Use "rb" mode for binary reading

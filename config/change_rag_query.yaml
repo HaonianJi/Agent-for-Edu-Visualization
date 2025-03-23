@@ -1,9 +1,0 @@
-defaults:
-  - base
-  - _self_
-  
-agent:
-  agent: change_rag_query
-  model: openai
-
-question_key: keywords

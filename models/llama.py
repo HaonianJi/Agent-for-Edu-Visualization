@@ -5,10 +5,7 @@ import transformers
 class Llama3(BaseModel):
     def __init__(self, config):
         super().__init__(config)
-        self.create_text_message = lambda text, question: {
-            "role": "user",
-            "content": f"{text}\n{question}",
-        }
+        
         self.create_ask_message = lambda question: {
             "role": "user",
             "content": question,
@@ -21,12 +18,25 @@ class Llama3(BaseModel):
             "text-generation",
             model=self.config.model_id,
             model_kwargs={"torch_dtype": torch.bfloat16},
-            device=0,
+            device=1,
         )
+    
+    def create_text_message(self, texts, question): 
+        prompt = ""
+        for text in texts:
+            prompt = prompt + text + '\n'
+        message = {
+            "role": "user",
+            "content": f"{prompt}\n{question}",
+        }
+        return message
     
     @torch.no_grad()
     def predict(self, question, texts = None, images = None, history = None):
         self.clean_up()
+        if images:
+            print(f"Images are not supported for {self.config.model_id}")
+            images = None
         messages = self.process_message(question, texts, images, history)
         outputs = self.pipeline(
             messages,

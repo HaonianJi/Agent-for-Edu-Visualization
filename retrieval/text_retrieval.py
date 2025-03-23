@@ -4,13 +4,13 @@ from tqdm import tqdm
 from ragatouille import RAGPretrainedModel
 
 from retrieval.base_retrieval import BaseRetrieval
-from mydatasets.base_dataset import BaseDataset
+from mydatasets.doc_dataset import DocDataset
 
 class ColbertRetrieval(BaseRetrieval):
     def __init__(self, config):
         self.config = config
     
-    def prepare(self, dataset: BaseDataset):
+    def prepare(self, dataset: DocDataset):
         samples = dataset.load_data(use_retreival=True)
         RAG = RAGPretrainedModel.from_pretrained("colbert-ir/colbertv2.0")
         doc_index:dict = {}
@@ -57,7 +57,7 @@ class ColbertRetrieval(BaseRetrieval):
         
         return top_page_indices[:top_k], top_page_scores[:top_k]
         
-    def find_top_k(self, dataset: BaseDataset, prepare=False):
+    def find_top_k(self, dataset: DocDataset, prepare=False):
         top_k = self.config.top_k
         samples = dataset.load_data(use_retreival=True)
         

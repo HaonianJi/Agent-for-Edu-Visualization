@@ -21,9 +21,9 @@ class BaseModel():
             messages = []
         
         if texts is not None:
-            messages += [self.create_text_message(text, question) for text in texts]
+            messages.append(self.create_text_message(texts, question))
         if images is not None:
-            messages += [self.create_image_message(image, question) for image in images]
+            messages.append(self.create_image_message(images, question))
         
         if (texts is None or len(texts) == 0) and (images is None or len(images) == 0):
             messages.append(self.create_ask_message(question))

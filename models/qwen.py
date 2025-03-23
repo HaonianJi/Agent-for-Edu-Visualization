@@ -1,30 +1,16 @@
 from models.base_model import BaseModel
-from transformers import Qwen2VLForConditionalGeneration, AutoProcessor
+from transformers import Qwen2VLForConditionalGeneration, AutoProcessor, AutoModelForCausalLM, AutoTokenizer
 from qwen_vl_utils import process_vision_info
 import torch
 
 class Qwen2VL(BaseModel):
     def __init__(self, config):
         super().__init__(config)
+        max_pixels = 2048*28*28
         self.model = Qwen2VLForConditionalGeneration.from_pretrained(
             self.config.model_id, torch_dtype="auto", device_map="balanced_low_0"
         )
-        self.processor = AutoProcessor.from_pretrained(self.config.model_id)
-
-        self.create_text_message = lambda text, question: {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": text},
-                {"type": "text", "text": question},
-            ],
-        }
-        self.create_image_message = lambda image_path, question: {
-            "role": "user",
-            "content": [
-                {"type": "image", "image": image_path},
-                {"type": "text", "text": question},
-            ],
-        }
+        self.processor = AutoProcessor.from_pretrained(self.config.model_id) # , max_pixels=max_pixels
         self.create_ask_message = lambda question: {
             "role": "user",
             "content": [
@@ -37,6 +23,28 @@ class Qwen2VL(BaseModel):
                 {"type": "text", "text": ans},
             ],
         }
+        
+    def create_text_message(self, texts, question):
+        content = []
+        for text in texts:
+            content.append({"type": "text", "text": text})
+        content.append({"type": "text", "text": question})
+        message = {
+            "role": "user",
+            "content": content
+        }
+        return message
+        
+    def create_image_message(self, images, question):
+        content = []
+        for image_path in images:
+            content.append({"type": "image", "image": image_path})
+        content.append({"type": "text", "text": question})
+        message = {
+            "role": "user",
+            "content": content
+        }
+        return message
     
     @torch.no_grad()
     def predict(self, question, texts = None, images = None, history = None):
@@ -86,3 +94,56 @@ class Qwen2VL(BaseModel):
                     return False
         return True
     
+class Qwen25(BaseModel):
+    def __init__(self, config):
+        super().__init__(config)
+        self.model = AutoModelForCausalLM.from_pretrained(
+            self.config.model_id, torch_dtype="auto", device_map="auto"
+        )
+        self.tokenizer = AutoTokenizer.from_pretrained(self.config.model_id)
+        self.create_ask_message = lambda question: {
+            "role": "user",
+            "content": question
+        }
+        self.create_ans_message = lambda ans: {
+            "role": "assistant",
+            "content": ans
+        }
+        
+    def create_text_message(self, texts, question):
+        content = ""
+        for text in texts:
+            content += text + "\n"
+        content += question
+        message = {
+            "role": "user",
+            "content": content
+        }
+        return message
+    
+    @torch.no_grad()
+    def predict(self, question, texts = None, images = None, history = None):
+        self.clean_up()
+        if images:
+            print(f"Images are not supported for {self.config.model_id}")
+            images = None
+        messages = self.process_message(question, texts, images, history)
+        text = self.tokenizer.apply_chat_template(
+            messages,
+            tokenize=False,
+            add_generation_prompt=True
+        )
+        model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
+
+        generated_ids = self.model.generate(
+            **model_inputs,
+            max_new_tokens=self.config.max_new_tokens
+        )
+        generated_ids = [
+            output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+        ]
+
+        response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        messages.append(self.create_ans_message(response))
+        self.clean_up()
+        return response, messages

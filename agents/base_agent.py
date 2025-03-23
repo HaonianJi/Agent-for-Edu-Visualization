@@ -1,5 +1,5 @@
 from models.base_model import BaseModel
-from mydatasets.base_dataset import BaseDataset
+from mydatasets.doc_dataset import DocDataset
 import os
 from typing import Dict, Union
 import json
@@ -11,7 +11,7 @@ import importlib
 class Agent:
     def __init__(self, config, model=None):
         self.config = config
-        self.messages = None
+        self.messages = None # store history
         if model is not None:
             self.model:BaseModel = model
         else:
@@ -21,6 +21,9 @@ class Agent:
             self.model = model_class(self.config.model)
     
     def clean_messages(self):
+        """
+        Reset history messages of this agent
+        """
         self.messages = None
         
     def _predict(self, question, texts=None, images=None, add_to_message = False):
@@ -34,11 +37,17 @@ class Agent:
         return generated_ans, messages
     
     def predict(self, question, texts=None, images=None, with_sys_prompt=True):
+        """
+        Predict the answer for the given question, by default, the system prompt will be added to the question, and the message history will be saved.
+        """
         if with_sys_prompt:
             question = self.config.agent.system_prompt + question
         return self._predict(question, texts, images, add_to_message = True)
     
     def discuss(self, discussion_log, agent_idx, agent_ids):
+        """
+        Discuss with other agents, the discussion log is a dictionary with agent_id as key and the discussion content as value. The message history won't be saved.
+        """
         prompt = f"{discussion_log}\n" + self.config.agent.discuss_prompt
         response_dict = {}
         for attempt in range(self.config.agent.max_retries):
@@ -60,6 +69,9 @@ class Agent:
         return turn_discussion
     
     def self_reflect(self):
+        """
+        Self-reflect the history message of this agent. The result will also be added to history message.
+        """
         self_reflect_prompt = self.config.agent.self_reflect_prompt
         
         generated_ans, messages = self._predict(question = self_reflect_prompt)
@@ -68,6 +80,9 @@ class Agent:
         return generated_ans
     
     def eval(self, question, answer, gt):
+        """
+        Evaluate the answer based on the ground truth. The evaluation result includes relevance, correctness, and binary_correctness.
+        """
         prompt = self.config.agent.eval_system_prompt.format(question=question, answer=answer, gt=gt)
         try:
             generated_ans, _ = self.model.predict(prompt)
@@ -77,7 +92,10 @@ class Agent:
             print(f"Error evaluating answer: {str(e)}")
             return {"relevance": 0, "correctness": 0, "binary_correctness": 0}
     
-    def eval_dataset(self, dataset: BaseDataset):
+    def eval_dataset(self, dataset: DocDataset):
+        """
+        Evaluate the dataset using the model. The evaluation results will be saved to the result file.(You can custom your own dataset class and the corresponding eval_dataset method)
+        """
         samples, ans_path = dataset.load_latest_results()
         if self.config.truncate_len:
             samples = samples[:self.config.truncate_len]

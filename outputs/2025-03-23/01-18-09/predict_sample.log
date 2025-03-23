@@ -1,0 +1,4 @@
+[2025-03-23 01:18:11,495][qwen_vl_utils.vision_process][INFO] - set VIDEO_TOTAL_PIXELS: 90316800
+[2025-03-23 01:18:13,056][accelerate.utils.modeling][INFO] - Based on the current allocation process, no modules could be assigned to the following devices due to insufficient memory:
+  - 0: 302094080 bytes required
+These minimum requirements are specific to this allocation attempt and may vary. Consider increasing the available memory for these devices to at least the specified minimum, or adjusting the model config.

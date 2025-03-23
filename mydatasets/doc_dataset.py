@@ -14,7 +14,7 @@ class Content:
     image_path: str
     txt: str
     
-class BaseDataset():
+class DocDataset():
     def __init__(self, config):
         self.config = config
         self.IM_FILE = lambda doc_name,index: f"{self.config.extract_path}/{doc_name}_{index}.png"
@@ -23,7 +23,7 @@ class BaseDataset():
         current_time = datetime.now()
         self.time = current_time.strftime("%Y-%m-%d-%H-%M")
         
-    def load_data(self, use_retreival=True):
+    def _load_data(self, use_retreival=True):
         path = self.config.sample_path
         if use_retreival:
             try:
@@ -68,10 +68,10 @@ class BaseDataset():
         with open(self.config.sample_with_retrieval_path, 'r') as f:
             samples = json.load(f)
         for sample in tqdm(samples):
-            _, sample["texts"], sample["images"] = self.load_sample_retrieval_data(sample)
+            _, sample["texts"], sample["images"] = self.load_sample_data(sample)
         return samples
     
-    def load_sample_retrieval_data(self, sample):
+    def load_sample_data(self, sample):
         content_list = self.load_processed_content(sample, disable_load_image=True)
         question:str = sample[self.config.question_key]
         texts = []
@@ -123,7 +123,7 @@ class BaseDataset():
         return content[:max_length]
     
     def extract_content(self, resolution=144):
-        samples = self.load_data()
+        samples = self._load_data()
         for sample in tqdm(samples):
             self._extract_content(sample, resolution=resolution)
             

@@ -2,6 +2,9 @@ defaults:
   - base
   - _self_
 
+use_text: false
+use_image: false
+
 system_prompt: |
   You are tasked with summarizing and evaluating the collective responses provided by multiple agents. You have access to the following information:
   Discussion: The interactions and discussions between the agents.
