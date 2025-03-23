@@ -5,7 +5,7 @@ gt_key: answer
 page_id_key: page_ids
 truncate_len: null
 max_page: 1000
-max_character_per_page: 1000
+max_character_per_page: 1000000
 use_mix: false
 r_text_key: ${retrieval.r_text_key}
 r_image_key: ${retrieval.r_image_key}
