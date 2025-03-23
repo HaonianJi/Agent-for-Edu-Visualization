@@ -1,8 +1,0 @@
-multi_agents:
-  cuda_visible_devices: 0,1,2,3
-  agents:
-  - agent: text_agent
-    model: llama31
-  - agent: text_agent
-    model: qwen2vl
-run-name: haha

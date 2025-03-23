@@ -1,6 +1,0 @@
-multi_agents:
-  cuda_visible_devices: 0,1,2,3
-  agents:
-  - agent: text_agent
-    model: qwen25_05B
-run-name: haha
