@@ -6,7 +6,7 @@ bash install.sh
 bash install_retrieval.sh
 ```
 
-### 一、拆分pdf（适配MMLongBench和LongDocURL，这两个目前已完成）
+### 一、拆分pdf
 1. 在config/base_doc.yaml中更改最顶上的数据集名
     ```yaml
     defaults:
