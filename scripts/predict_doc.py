@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from mydatasets.doc_dataset import DocDataset
-from agents.multi_agent_system import MultiAgentSystem
+from agents.mdoc_agent import MDocAgent
 import hydra
 
 @hydra.main(config_path="../config", config_name="base_doc", version_base="1.2")
@@ -21,7 +21,7 @@ def main(cfg):
     cfg.multi_agents.sum_agent.model = hydra.compose(config_name="model/"+cfg.multi_agents.sum_agent.model, overrides=[]).model
     
     dataset = DocDataset(cfg.doc_dataset)
-    multi_agents = MultiAgentSystem(cfg.multi_agents)
+    multi_agents = MDocAgent(cfg.multi_agents)
     multi_agents.predict_dataset(dataset)
     
 if __name__ == "__main__":

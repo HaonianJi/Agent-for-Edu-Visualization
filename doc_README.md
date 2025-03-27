@@ -1,10 +1,14 @@
-### 零、环境
+### 零、环境和数据
 ```bash
 conda create -n lm-maf python=3.12
 conda activate lm-maf
 bash install.sh
 bash install_retrieval.sh
+mkdir data
+cd data
 ```
+
+从[huggingface](https://huggingface.co/datasets/Lillianwei/Mdocagent-dataset)下载资料，放入`data`文件夹中，其中`PaperText`的`document`文件夹与`papertab`一致，请使用符号链接
 
 ### 一、拆分pdf
 1. 在config/base_doc.yaml中更改最顶上的数据集名
@@ -32,10 +36,6 @@ bash install_retrieval.sh
     ```yaml
     retrieval:
     top_k: 10 # 检索时给出top几的结果
-
-    # 文字/图片检索时使用的检索键名，可以改成'statement'或'key_words'，前提是已经在第二步生成对应的新的检索query
-    text_question_key: question
-    image_question_key: question
     ```
 
 3. 运行
@@ -49,31 +49,13 @@ bash install_retrieval.sh
 
     检索结果均保存在`sample-with-retrieval-results.json`中
 
+    注意`MDocAgent`是要分别对`image`和`text`各进行一遍检索
+
 ### 三、Multiagent推理
 
 1. 设置config/base_doc.yaml中的参数
 
-    multi_agents.agents下面是多个agent、model对组成的列表，可以在对应的config文件夹下面修改agent的prompt和model的参数，sum_agent是最后总结所有agents回答的agent
-
-    如下配置中，agents有两个，一个llama3.1，一个qwen2-VL，汇总的sum_agent是qwen2-VL
-
-    ```yaml
-    multi_agents:
-        cuda_visible_devices: '0,1,2,3'
-        truncate_len: 1 # 用来debug，正常使用时设置为null
-        ans_key: ans_${run-name} # predict时生成的答案的key
-        save_message: false # 改成true会再记录所有agent的回答
-
-        agents:
-            - agent: image_only # agent用来配置prompt，和控制参考资料中文本/图片的使用
-            model: qwen2vl # model用来配置使用的模型
-            - agent: text_only
-            model: llama31
-        
-        sum_agent:
-            agent: sum_agent # 用来汇总所有agent的回答
-            model: qwen2vl
-    ```
+    `multi_agents`参数请到对应的`config/multi_agents`文件夹下调整，可以在对应的`config/agent`和`config/model`文件夹下面修改`agent`的`prompt`和`model`的参数，sum_agent是最后总结所有agents回答的agent
 
 2. 运行
     ```bash
