@@ -8,13 +8,13 @@ mkdir data
 cd data
 ```
 
-从[huggingface](https://huggingface.co/datasets/Lillianwei/Mdocagent-dataset)下载资料，放入`data`文件夹中，其中`PaperText`的`document`文件夹与`papertab`一致，请使用符号链接
+从[huggingface](https://huggingface.co/datasets/Lillianwei/Mdocagent-dataset)下载资料，放入`data`文件夹中，若使用`PaperText`，它的`document`文件夹与`Papertab`的一致，请从`Papertab`的目录下进行符号链接
 
 ### 一、拆分pdf
 1. 在config/base_doc.yaml中更改最顶上的数据集名
     ```yaml
     defaults:
-        - doc_dataset: <数据集名>
+        - doc_dataset: <数据集名> # 
     ```
     
 2. 运行
