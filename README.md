@@ -49,6 +49,9 @@ bash install.sh
 
 ## 进阶教程
 
+### DocQA
+请参考`doc_README.md`
+
 ### RL训练
 1. 在`train`目录下实现`train`的类，在`config/train`下面创建对应的类的`yaml`文件并设置参数，可以参考`grpo`
 2. 在`reward`目录下实现`reward`的类，在`config/train`下面创建对应的类的`yaml`文件，可以参考`dummy`
