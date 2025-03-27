@@ -1,4 +1,6 @@
-tmp*
+tmp/*
 *__pycache__*
-.rag*
+.rag/*
 outputs/*
+wandb/*
+training_output/*

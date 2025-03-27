@@ -46,3 +46,24 @@ bash install.sh
     ```bash
     python scripts/predict_sample.py
     ```
+
+## 进阶教程
+
+### RL训练
+1. 在`train`目录下实现`train`的类，在`config/train`下面创建对应的类的`yaml`文件并设置参数，可以参考`grpo`
+2. 在`reward`目录下实现`reward`的类，在`config/train`下面创建对应的类的`yaml`文件，可以参考`dummy`
+3. 目前实现的`grpo`使用`huggingface`的`trl`库，需要使用的话请安装
+    ```bash
+    pip install trl
+    ```
+    并且默认上传`log`至`wandb`，需要使用的话请
+    ```bash
+    pip install wandb
+    wandb login
+    ```
+4. 目前实现的`grpo`只支持`LLM`，对数据集的要求是必须含有`prompt`参数，用作输入，模型的输出为`completions`参数，可以在`reward`函数中自行使用数据集中的其它参数，该数据集的类请直接使用`datasets`类或者自行在`mydatasets`中添加
+5. 运行训练的代码请参考`python scripts/rl_train.py`，参数请参考`config/base_train.yaml`，使用的train类、reward类、用于训练的agent和对应的模型都可以在`config/base_train.yaml`自行修改
+6. 运行
+    ```bash
+    python scripts/rl_train.py
+    ```

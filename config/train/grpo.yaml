@@ -1,0 +1,26 @@
+defaults:
+  - base
+  - _self_
+
+module_name: train.grpo
+class_name: GRPOTrain
+
+remove_unused_columns: False
+max_prompt_length: 512
+num_generations: 8
+max_completion_length: 256
+
+# temperature: 0.9
+# top_p: 1.0
+# top_k: 50
+# repetition_penalty: 1.0
+
+learning_rate: 1e-06
+beta: 0.04
+num_iterations: 1
+epsilon: 0.2
+reward_weights: null
+sync_ref_model: False
+ref_model_mixup_alpha: 0.5
+ref_model_sync_steps: 512
+log_completions: True

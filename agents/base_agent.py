@@ -17,7 +17,7 @@ class Agent:
         else:
             module = importlib.import_module(self.config.model.module_name)
             model_class = getattr(module, self.config.model.class_name)
-            print("Create model: ", self.config.model.class_name)
+            print("Create model: ", self.config.model.model_id)
             self.model = model_class(self.config.model)
     
     def clean_messages(self):

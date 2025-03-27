@@ -20,7 +20,7 @@ bash install_retrieval.sh
 
 3. 拆分后的图片和文本结果会保存到`tmp/<数据集名>`文件夹中
 
-### 三、进行检索
+### 二、进行检索
 
 1. 在config/base_doc.yaml中更改最上面的retrieval类型
     ```yaml
@@ -49,7 +49,7 @@ bash install_retrieval.sh
 
     检索结果均保存在`sample-with-retrieval-results.json`中
 
-### 四、Multiagent推理
+### 三、Multiagent推理
 
 1. 设置config/base_doc.yaml中的参数
 
@@ -82,7 +82,7 @@ bash install_retrieval.sh
 
 3. 结果会保存到`results/<数据集名>/<run-name>/<时间>.json`中
 
-### 五、评估结果
+### 四、评估结果
 1. 设置config/base_doc.yaml中的参数，基本不用更改，只要保证eval_agent.ans_key和前一步时multi_agents.ans_key相同即可
     ```yaml
     eval_agent: # 用来测试结果
@@ -98,3 +98,7 @@ bash install_retrieval.sh
     ```
 
 3. 结果会保存到`results/<数据集名>/<run-name>/results.txt`中
+
+### 五、其它
+
+RL训练请参考`README`最后，但目前还未支持`vlm`的`grpo`，请自行添加🥹
