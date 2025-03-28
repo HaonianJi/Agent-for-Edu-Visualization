@@ -33,6 +33,9 @@ class Method1(MultiAgentSystem):
         # sum the discussion log
         final_ans, final_messages = self.sum(discussion_log)
         
+        # clean the history messages for all agents
+        self.clean_messages()
+        
         return final_ans, final_messages
     
 
@@ -50,5 +53,7 @@ class Method2(MultiAgentSystem):
         # prepare the original discussion data: agent's answer + self-reflection
         for idx, output in enumerate(outputs):
             discussion += f"Agent {idx}:\n" + output
+        
+        self.clean_messages()
             
         return discussion, messages

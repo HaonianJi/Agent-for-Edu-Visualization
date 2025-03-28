@@ -2,38 +2,41 @@ from agents.base_agent import Agent
 from tqdm import tqdm
 import importlib
 import json
-from typing import List
+from typing import List, Dict
 from mydatasets.doc_dataset import DocDataset
+from utils.config import name_to_class
 
 class MultiAgentSystem:
     def __init__(self, config):
         self.config = config
         self.agents:List[Agent] = []
+        self.agents_info:List[Dict] = []
         self.models:dict = {}
         for agent_config in self.config.agents:
-            if agent_config.model.class_name not in self.models:
-                module = importlib.import_module(agent_config.model.module_name)
-                model_class = getattr(module, agent_config.model.class_name)
-                print("Create model: ", agent_config.model.class_name)
-                self.models[agent_config.model.class_name] = model_class(agent_config.model)
-            self.add_agent(agent_config, self.models[agent_config.model.class_name])
-            
-        try:
-            if config.sum_agent.model.class_name not in self.models:
-                module = importlib.import_module(config.sum_agent.model.module_name)
-                model_class = getattr(module, config.sum_agent.model.class_name)
-                self.models[config.sum_agent.model.class_name] = model_class(config.sum_agent.model)
-            self.sum_agent = Agent(config.sum_agent, self.models[config.sum_agent.model.class_name])
-        except Exception as e:
-            pass
-            # print(e)
-            # print("No sum agent is created.")
-        
-    def add_agent(self, agent_config, model):
-        module = importlib.import_module(agent_config.agent.module_name)
-        agent_class = getattr(module, agent_config.agent.class_name)
-        agent:Agent = agent_class(agent_config, model)
+            self.add_agent(agent_config)
+        self.default_agent_len = len(self.agents)
+        if config.sum_agent:
+            self.sum_agent = self.create_agent(config.sum_agent)
+        if config.plan_agent:
+            self.plan_agent = self.create_agent(config.plan_agent)
+    
+    def create_agent(self, agent_config):
+        if agent_config.model.class_name not in self.models:
+            self.models[agent_config.model.class_name] = name_to_class(agent_config.model)
+            print("Create model: ", agent_config.model.model_id)
+        agent:Agent = name_to_class(agent_config, model=self.models[agent_config.model.class_name], name_config = agent_config.agent)
+        return agent
+    
+    def add_agent(self, agent_config):
+        agent = self.create_agent(agent_config)
+        agent_info = {
+            "name": agent_config.agent.name,
+            "system_prompt": agent_config.agent.system_prompt,
+            "description": agent_config.agent.description,
+            "reason": agent_config.agent.reason
+        }
         self.agents.append(agent)
+        self.agents_info.append(agent_info)
         
     def execute(self, question, texts, images, discuss_mode=False):
         """
@@ -117,6 +120,7 @@ class MultiAgentSystem:
         
         # sum all information
         final_ans, all_messages = self.sum(sum_question, texts, images)
+        self.clean_messages()
         return final_ans, all_messages
     
     def predict_dataset(self, dataset:DocDataset):
@@ -139,6 +143,11 @@ class MultiAgentSystem:
         path = dataset.dump_reults(samples)
         print(f"Save results to {path}.")
 
+    def clean_messages(self):
+        for agent in self.agents:
+            agent.clean_messages()
+        if self.sum_agent:
+            self.sum_agent.clean_messages()
         
 
 

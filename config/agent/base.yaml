@@ -4,6 +4,9 @@ use_text: false
 use_image: false
 max_retries: 3
 
+name: base
+description: This agent is a base agent.
+reason: default
 system_prompt: You are a helpful assistant.
 
 self_reflect_prompt: Please carefully review the provided answer, considering the accuracy, relevance, and completeness of the response. Assess the reasoning and evidence used to arrive at the conclusion. Then, provide a confidence level for the answer on a scale from 1 to 10 (1 = very low confidence, 10 = very high confidence). Along with the confidence level, explain the rationale behind your assessment, including any uncertainties, potential errors, or missing information that may affect the confidence. If there are any uncertainties or assumptions made, explicitly state them in your response.

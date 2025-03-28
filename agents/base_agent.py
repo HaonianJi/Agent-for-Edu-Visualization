@@ -9,7 +9,7 @@ import re
 import importlib
 
 class Agent:
-    def __init__(self, config, model=None):
+    def __init__(self, config, model=None, **kwargs):
         self.config = config
         self.messages = None # store history
         if model is not None:
@@ -68,14 +68,18 @@ class Agent:
         
         return turn_discussion
     
-    def self_reflect(self):
+    def self_reflect(self, prompt=None, add_to_message = True):
         """
-        Self-reflect the history message of this agent. The result will also be added to history message.
+        Self-reflect the history message of this agent. The result will also be added to history message by default.
         """
-        self_reflect_prompt = self.config.agent.self_reflect_prompt
+        if prompt is None:
+            self_reflect_prompt = self.config.agent.self_reflect_prompt
+        else:
+            self_reflect_prompt = prompt
         
         generated_ans, messages = self._predict(question = self_reflect_prompt)
-        self.messages = messages
+        if add_to_message:
+            self.messages = messages
         
         return generated_ans
     
@@ -99,26 +103,35 @@ class Agent:
         samples, ans_path = dataset.load_latest_results()
         if self.config.truncate_len:
             samples = samples[:self.config.truncate_len]
-
+        
+        samples_with_answer = []
         for sample in tqdm(samples):
-            question = sample[dataset.config.question_key]
-            answer = sample[self.config.ans_key]
-            gt = sample[dataset.config.gt_key]
-            result = self.eval(question, answer, gt)
-            sample['relevance'] = result['relevance']
-            sample['correctness'] = result['correctness']
-            sample['binary_correctness'] = result.get('binary_correctness', None)
+            try:
+                question = sample[dataset.config.question_key]
+                answer = sample[self.config.ans_key]
+                gt = sample[dataset.config.gt_key]
+                result = self.eval(question, answer, gt)
+                sample['relevance'] = result['relevance']
+                sample['correctness'] = result['correctness']
+                sample['binary_correctness'] = result.get('binary_correctness', None)
+                samples_with_answer.append(sample)
+            except Exception as e:
+                print(f"Error evaluating sample: {str(e)}")
+                
+        ans_file_path_name = ans_path[:-5]+"_results.json"
+        with open(ans_file_path_name, "w") as file:
+            json.dump(samples_with_answer, file, indent=4)
             
-        samples = pd.DataFrame(samples)
+        samples_with_answer = pd.DataFrame(samples_with_answer)
         path = os.path.join(dataset.config.result_dir,"results.txt")
         with open(path, "a") as file:
             file.write("\nEvaluation Results Summary:\n")
             file.write(f"Result file: {ans_path}\n")
-            file.write(f"Average Relevance: {samples['relevance'].mean():.3f}\n")
-            file.write(f"Average Correctness: {samples['correctness'].mean():.3f}\n")
-            file.write(f"Average Binary Correctness: {samples['binary_correctness'].mean():.3f}\n")
-            samples['binary_correctness_average'] = samples['correctness'].apply(lambda x: 1 if x > 0.5 else 0)
-            file.write(f"Average Binary Correctness (based on Average Correctness): {samples['binary_correctness_average'].mean():.3f}\n")
+            file.write(f"Average Relevance: {samples_with_answer['relevance'].mean():.3f}\n")
+            file.write(f"Average Correctness: {samples_with_answer['correctness'].mean():.3f}\n")
+            file.write(f"Average Binary Correctness: {samples_with_answer['binary_correctness'].mean():.3f}\n")
+            samples_with_answer['binary_correctness_average'] = samples_with_answer['correctness'].apply(lambda x: 1 if x > 0.5 else 0)
+            file.write(f"Average Binary Correctness (based on Average Correctness): {samples_with_answer['binary_correctness_average'].mean():.3f}\n")
         
         print(f"Save results to {path}.")
 
