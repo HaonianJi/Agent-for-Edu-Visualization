@@ -5,6 +5,7 @@ import json
 from typing import List, Dict
 from mydatasets.doc_dataset import DocDataset
 from utils.config import name_to_class
+from omegaconf import OmegaConf
 
 class MultiAgentSystem:
     def __init__(self, config):
@@ -15,9 +16,9 @@ class MultiAgentSystem:
         for agent_config in self.config.agents:
             self.add_agent(agent_config)
         self.default_agent_len = len(self.agents)
-        if config.sum_agent:
+        if OmegaConf.select(config, "sum_agent") is not None:
             self.sum_agent = self.create_agent(config.sum_agent)
-        if config.plan_agent:
+        if OmegaConf.select(config, "plan_agent") is not None:
             self.plan_agent = self.create_agent(config.plan_agent)
     
     def create_agent(self, agent_config):
