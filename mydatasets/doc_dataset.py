@@ -6,7 +6,7 @@ import os
 import pymupdf
 from tqdm import tqdm
 from datetime import datetime
-import glob
+from utils.base import find_latest_json
 
 @dataclass
 class Content:
@@ -150,17 +150,3 @@ class DocDataset():
                 text_list.append(txt_file)
                 
         return image_list, text_list
-    
-def extract_time(file_path):
-    file_name = os.path.basename(file_path)
-    time_str = file_name.split(".json")[0]
-    return datetime.strptime(time_str, "%Y-%m-%d-%H-%M")
-
-def find_latest_json(result_dir):
-    pattern = os.path.join(result_dir, "*-*-*-*-*.json")
-    files = glob.glob(pattern)
-    if not files:
-        print(f"Json file not found at {result_dir}")
-        return None
-    latest_file = max(files, key=extract_time)
-    return latest_file
