@@ -1,72 +1,149 @@
-# LM-MultiAgent-Framework
+# LM-MultiAgent-Framework for Educational Content Generation
 
-## 环境
-```bash
-conda create -n lm-maf python=3.12
-conda activate lm-maf
-bash install.sh
+## Overview
+
+This project implements a multi-agent system designed to generate comprehensive educational content based on user queries. It leverages a series of specialized Language Model (LM) agents that collaborate to create detailed teaching plans, refine them through iterative feedback, and structure them for various presentation formats. The core of this system is the `TeachAgentsIntermediateSystem`, which orchestrates the entire workflow.
+
+## Features
+
+*   **Multi-Agent Collaboration:** Utilizes a suite of specialized agents (e.g., Visual Representer, Information Expresser, Cognitive Strategist, Metacognitive Strategist, Schema Instruction Specialist, Web Page Formatting Specialist) to contribute diverse expertise.
+*   **Structured Educational Content:** Generates teaching plans broken down into logical parts, each addressing specific learning objectives.
+*   **Iterative Refinement:** Employs a refinement loop where specialist agents provide feedback on each part of the plan, and a synthesizer agent incorporates this feedback to improve the content.
+*   **Detailed Output Logging:** Saves all intermediate and final outputs in a well-organized, timestamped directory structure for traceability and review. This includes:
+    *   The initial user query.
+    *   The raw initial teaching plan.
+    *   Each extracted part from the initial plan.
+    *   For each part during refinement:
+        *   The original content.
+        *   Feedback from each specialist agent.
+        *   Combined feedback.
+        *   The refined content after synthesis.
+    *   The final combined refined plan.
+    *   Separated final refined parts.
+    *   UI/Presentation plans for each part.
+*   **Configurable Agents and Models:** Agent behaviors and LM model parameters can be configured through YAML files.
+*   **OpenAI Integration:** Currently uses OpenAI models (e.g., GPT-4o) for language generation tasks.
+
+## Directory Structure
+
+```
+LM-MultiAgent-Framework/
+├── agents/                         # Core agent logic
+│   ├── teach_agents_intermediate_system.py # Main orchestrator
+│   └── base_agent.py               # Base class for all agents
+├── config/                         # Configuration files
+│   ├── agent/                      # Individual agent configurations (YAML)
+│   ├── model/                      # Language model configurations (YAML)
+│   └── multi_agents/               # Multi-agent system configurations (YAML)
+│       └── education.yaml          # Example: education query processing setup
+├── models/                         # Language model interface
+│   └── openai_model.py             # OpenAI API integration
+├── outputs/                        # Generated outputs from runs
+│   └── teach_intermediate/         # Outputs for the educational query system
+│       └── [timestamped_run_dir]/  # Specific run outputs
+├── scripts/                        # Executable scripts
+│   └── run_teach_intermediate.py   # Main script to run the system
+├── .env.example                    # Example environment file for API keys
+├── requirements.txt                # Python dependencies
+└── README.md                       # This file
 ```
 
-## 教程
+## Setup
 
-### 基础逻辑
-
-主要分为model、agent、multi-agent system三层
-
-- model层负责设置基本的模型，包括模型初始化、模型基本推理方法，可以在`models`目录下添加新的模型，在`config/model`下面设置参数
-- agent层负责控制提示词、添加模型的各种推理方法（如self reflect、discuss），可以在`agents/base_agent.py`中添加新的方法，在`config/agent`下面设置提示词
-- multi-agent system层负责控制agent的结构关系
-    - `predict`方法为单条问题在multi-agent system下的推理流程，需要的参数是question（问题），text（可选，额外的文字信息，是字符串的列表），image（可选，额外的图片信息，是图片的路径的列表）。目前默认的结构是agents列表中的所有agent共同推理，最后sum agent总结回答。若要调整system结构，可以自定义新的predict方法，请参考`agents/custom_method.py`。
-    - `predict_dataset`方法是整个数据集在multi-agent system下的推理，但需要根据使用的dataset类来自行定义，可以在`mydatasets`目录下模仿`doc_dataset`自行设置数据集类
-    - 其余方法用于调用agent层设置好的各种额外推理方法，请参考注释
-
-### 使用
-
-1. 设置config/base.yaml中的参数
-
-    multi_agents的设置在`config/multi_agents`下，其中`agents`是多个agent、model对组成的列表，可以在对应的config文件夹下面修改agent的prompt和model的参数，sum_agent是最后总结所有agents回答的agent
-
-    如下配置中，agents有两个，一个llama3.1，一个qwen2-VL，汇总的sum_agent是qwen2-VL
-
-    ```yaml
-    cuda_visible_devices: '0,1,2,3'
-
-    agents:
-        - agent: image_only # agent用来配置prompt，和控制参考资料中文本/图片的使用
-        model: qwen2vl # model用来配置使用的模型
-        - agent: text_only
-        model: llama31
-    
-    sum_agent:
-        agent: sum_agent # 用来汇总所有agent的回答
-        model: qwen2vl
-    ```
-
-2. 运行
+1.  **Clone the repository (if applicable):**
     ```bash
-    python scripts/predict_sample.py
+    git clone <repository-url>
+    cd LM-MultiAgent-Framework
     ```
 
-## 进阶教程
+2.  **Create and activate a Python virtual environment (recommended):**
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
 
-### DocQA
-请参考`doc_README.md`
+3.  **Install dependencies:**
+    ```bash
+    bash install.sh
+    ```
 
-### RL训练
-1. 在`train`目录下实现`train`的类，在`config/train`下面创建对应的类的`yaml`文件并设置参数，可以参考`grpo`
-2. 在`reward`目录下实现`reward`的类，在`config/train`下面创建对应的类的`yaml`文件，可以参考`dummy`
-3. 目前实现的`grpo`使用`huggingface`的`trl`库，需要使用的话请安装
+4.  **Set up Environment Variables:**
+    Copy the `.env.example` file to `.env` and add your OpenAI API key:
     ```bash
-    pip install trl
+    cp .env.example .env
     ```
-    并且默认上传`log`至`wandb`，需要使用的话请
-    ```bash
-    pip install wandb
-    wandb login
+    Then edit `.env`:
     ```
-4. 目前实现的`grpo`只支持`LLM`，对数据集的要求是必须含有`prompt`参数，用作输入，模型的输出为`completions`参数，可以在`reward`函数中自行使用数据集中的其它参数，该数据集的类请直接使用`datasets`类或者自行在`mydatasets`中添加
-5. 运行训练的代码请参考`python scripts/rl_train.py`，参数请参考`config/base_train.yaml`，使用的train类、reward类、用于训练的agent和对应的模型都可以在`config/base_train.yaml`自行修改
-6. 运行
-    ```bash
-    python scripts/rl_train.py
+    OPENAI_API_KEY="your_openai_api_key_here"
     ```
+
+## Usage
+
+To run the educational content generation system, execute the main script:
+
+```bash
+python scripts/run_teach_intermediate.py
+```
+
+By default, this script uses a predefined sample query. You can modify the query within the script if needed.
+
+Outputs will be saved in the `outputs/teach_intermediate/` directory, under a subdirectory named with the timestamp and a slug of the query (e.g., `outputs/teach_intermediate/YYYYMMDD_HHMMSS_explain_concept_photosynthesis/`).
+
+### Understanding the Output Structure
+
+Inside each run's output directory, you will find:
+
+*   `00_user_query.txt`: The initial query provided to the system.
+*   `01_initial_plan_raw.txt`: The first teaching plan generated by the planning agents.
+*   `02_initial_parts_extracted/`: Directory containing each part extracted from `01_initial_plan_raw.txt`.
+    *   `part_1.txt`, `part_2.txt`, ...
+*   `03_refinement_process/`: Directory containing the detailed refinement steps for each part.
+    *   `part_1/`
+        *   `01_original_content.txt`: The content of this part before refinement.
+        *   `02_feedback_visual_representer.txt`: Feedback from the Visual Representer.
+        *   `03_feedback_info_expresser.txt`: Feedback from the Information Expresser.
+        *   ... (other specialist feedback files)
+        *   `06_combined_feedback_for_synthesizer.txt`: All feedback combined.
+        *   `07_refined_content_by_schema_instruction_specialist.txt`: The refined content for this part.
+    *   `part_2/`, ... (similar structure for other parts)
+*   `04_final_refined_plan_combined.txt`: The complete teaching plan after all parts have been refined, combined into a single file.
+*   `05_final_refined_parts_separated/`: Directory containing the final refined content for each part, saved as separate files.
+    *   `part_1_refined.txt`, `part_2_refined.txt`, ...
+*   `06_ui_plans_for_each_part/`: Directory containing UI/presentation plans generated for each refined part.
+    *   `part_1_ui_plan.txt`, `part_2_ui_plan.txt`, ...
+
+## Configuration
+
+The system is highly configurable through YAML files located in the `config/` directory:
+
+*   **Agent Configuration (`config/agent/`):** Each agent (e.g., `teach_scenario_introducer.yaml`, `teach_visual_representer.yaml`) has its own configuration file defining its role, instructions, and model settings.
+*   **Model Configuration (`config/model/`):** Defines parameters for the language models used (e.g., `gpt4o_openai.yaml`).
+*   **Multi-Agent System Configuration (`config/multi_agents/`):** The `education.yaml` file orchestrates how different agents are grouped and sequenced for the educational query task.
+
+## Core Components
+
+*   **`agents/teach_agents_intermediate_system.py`:** The central class that manages the entire workflow, from receiving the user query to generating the final refined teaching plan and UI plans. It orchestrates agent calls, data flow, and output saving.
+*   **`agents/base_agent.py`:** An abstract base class that provides common functionality for all agents, including loading configurations and interacting with language models.
+*   **`models/openai_model.py`:** Handles communication with the OpenAI API, sending requests and receiving responses from the configured language models.
+
+## Workflow
+
+1.  **User Query:** The process starts with a user query (e.g., "Explain the concept of photosynthesis to a 5th grader").
+2.  **Initial Plan Generation (Phase 1 & 2):** A set of initial planning agents (Scenario Introducer, Problem Solver, Schema Instruction Specialist) collaborate to generate a comprehensive initial teaching plan. This plan is structured into several parts.
+3.  **Part Extraction:** The `TeachAgentsIntermediateSystem` extracts individual parts from the combined initial plan.
+4.  **Iterative Refinement (Phase 3):** For each extracted part:
+    *   **Discussion Agents:** Multiple specialist agents (Visual Representer, Information Expresser, Cognitive Strategist, Metacognitive Strategist) review the part and provide specific feedback.
+    *   **Synthesizer Agent:** The Schema Instruction Specialist (acting as a synthesizer) takes the original part content and all the collected feedback to produce a refined version of the part.
+5.  **UI Plan Generation (Phase 4):** The Web Page Formatting Specialist agent generates a UI/presentation plan for each refined part.
+6.  **Output Saving:** Throughout the process, all inputs, intermediate outputs, feedback, and final results are saved to the designated output directory.
+
+## Future Work
+
+*   Integration with other Language Models.
+*   More sophisticated agent interaction patterns.
+*   User interface for easier query input and output visualization.
+*   Evaluation metrics for generated content quality.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit pull requests or open issues.
