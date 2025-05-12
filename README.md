@@ -150,3 +150,7 @@ The system is highly configurable through YAML files located in the `config/` di
 ## Contributing
 
 Contributions are welcome! Please feel free to submit pull requests or open issues.
+<a href="https://github.com/aiming-lab/MDocAgent/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Lillianwei-h/MDocAgent" />
+</a>
+
