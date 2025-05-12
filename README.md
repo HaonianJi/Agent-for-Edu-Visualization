@@ -52,20 +52,23 @@ LM-MultiAgent-Framework/
 
 1.  **Clone the repository (if applicable):**
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/HaonianJi/Agent-for-Edu-Visualization.git
     cd LM-MultiAgent-Framework
     ```
 
-2.  **Create and activate a Python virtual environment (recommended):**
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
+2. **Create and activate a Conda environment (recommended):**
 
-3.  **Install dependencies:**
-    ```bash
-    bash install.sh
-    ```
+   ```bash
+   conda create -n lm-maf python=3.12
+   conda activate lm-maf
+   ```
+
+3. **Install dependencies:**
+
+   ```bash
+   bash install.sh
+   ```
+
 
 4.  **Set up Environment Variables:**
     Copy the `.env.example` file to `.env` and add your OpenAI API key:
