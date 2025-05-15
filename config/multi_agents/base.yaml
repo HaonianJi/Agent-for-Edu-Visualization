@@ -1,11 +1,5 @@
 cuda_visible_devices: '0,1,2,3'
 
 agents:
-  - agent: text_agent # 设置使用的agent
-    model: qwen25_05B # 设置使用的模型
-  # - agent: image_agent
-  #   model: qwen25_05B
-
-# sum_agent: # 用来汇总所有agent的回答, 如果不需要sum直接删除这段sum_agent设置
-#   agent: sum_agent
-#   model: qwen2vl
+  - agent: text_agent 
+    model: qwen25_05B 
