@@ -1,5 +1,5 @@
 defaults:
-  - multi_agents: base # 改这个可以换multiagent系统，使用multi_agents时配置
+  - multi_agents: base
   - _self_
 
-run-name: haha # 实验名
+run-name: haha 
